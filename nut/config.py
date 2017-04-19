@@ -24,7 +24,8 @@ class Config(object):
     def default(self):
         self.theme = "default"
         self.summary = ""
-        self.output = "docs"
+        self.home = "Homepage"
+        self.output = "site"
         self.externals = {}
         self.articles_per_page = 10
 
@@ -40,6 +41,7 @@ class Config(object):
         data = {
             "theme": self.theme,
             "summary": self.summary,
+            "home": self.home,
             "output": self.output,
             "articles_per_page": self.articles_per_page,
             "externals": self.externals,

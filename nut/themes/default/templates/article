@@ -3,24 +3,23 @@
 {% block title %}<title>{{ article.header.title }}</title>{% endblock %}
 
 {% block main %}
-    <div class="container">
-        {% include "_header" %}
-        <div class="row">
-            <div class="article col-sm-9">
-                <div class="article-header">
-                    <div class="article-tags">
-                        {% for tag in article.header.tags %}
-                            <a class="cat">{{ tag }}</a>
-                        {% endfor %}
-                    </div>
-                </div>
-                <article id="article" class="article-content">{{ article.html }}</article>
-            </div>
-            <div class="sticky col-sm-3 hidden-sm hidden-xs" role="complementary"><span>Content</span><nav id="toc" data-spy="affix" data-offset-top="200"></nav></div>
+<div class="container">
+  {% include "_header" %}
+  <div class="row">
+    <div class="article col-sm-9">
+      <div class="article-header">
+        <div class="article-tags">
+        {% for tag in article.header.tags %}
+          <a class="cat">{{ tag }}</a>
+        {% endfor %}
         </div>
-        {% include "_footer" %}
+      </div>
+      <article id="article" class="article-content">{{ article.html }}</article>
     </div>
-    </div>
+    <div class="col-sm-3"><nav id="toc" class="hidden-xs affix-top" data-spy="affix" data-offset-top="150"></nav></div>
+  </div>
+  {% include "_footer" %}
+</div>
 {% endblock %}
 
 {% block script %}
@@ -28,22 +27,14 @@
 <script src="//cdn.rawgit.com/afeld/bootstrap-toc/v0.4.1/dist/bootstrap-toc.min.js"></script>
 
 <style>
-.affix {
+#toc {
+    width: 220px;
+    overflow-y: auto;
     top: 20px;
+    bottom: 90px;
 }
-
-.sticky {
-    border-top: 0;
-    line-height: 1.1;
-    overflow: auto;
-    box-shadow: -3px 4px 16px 0px rgba(0,0,0,0.1);
-}
-.sticky span {
-    display: block;
-    text-align: center;
-}
-.sticky > * {
-    padding: 8px;
+nav {
+    position: static;
 }
 
 .article > * {
@@ -56,11 +47,26 @@
 
 <script>
 $(function() {
-  var s = '#toc';
-  var e = $(s);
-  Toc.init(e);
-  $('body').scrollspy({ target: s });
-  e.data("offsetTop", e.offset().top - 20);
+  var navSelector = '#toc';
+  var $myNav = $(navSelector);
+  Toc.init($myNav);
+  $('body').scrollspy({
+    target: navSelector
+    });
+
+  // FIXME: this won't working on android chrome, why ?
+  //$myNav.affix({
+  //  offset: {
+  //    top: 150,
+  //    }
+  //  });
+
+  $(window).on("scroll", function(e) {
+    var e = $("#toc li.active").get(0);
+    if (e) {
+      e.scrollIntoView(false);
+    }
+    });
 });
 </script>
 {% endblock %}
