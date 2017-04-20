@@ -1,6 +1,7 @@
 site
 out
 doc
+blog
 
 __pycache__
 build

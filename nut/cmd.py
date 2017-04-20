@@ -3,7 +3,7 @@ from datetime import datetime
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 
 from .fs import *
-from .model import *
+from .processor import *
 from .config import Config
 from .theme import Theme
 from .generator import Generator
@@ -26,10 +26,11 @@ def build(root="."):
 
 
 def new_article(name, root="."):
+    c = Config(root)
     h = ArticleHeader()
     h.title = name
     filename = name.lower().replace(" ", "-")
-    filename = "{}-{}.md".format(h.date.strftime("%Y-%m-%d"), filename)
+    filename = "{}-{}.md".format(h.date.strftime(config.datetime_format), filename)
     open(os.path.join(root, "articles", filename), "w").write(h.serialize())
 
 

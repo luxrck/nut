@@ -3,9 +3,8 @@ import os
 import mistune
 
 from . import config, theme
-from .model import *
-from .renderer import *
 from .fs import *
+from .processor import *
 
 
 class Generator(object):
@@ -15,42 +14,85 @@ class Generator(object):
         self.config = config.Config(self.root)
         self.theme = theme.Theme(name = self.config.theme, root = self.root)
 
-        self.reload()
-
-
-    def reload(self):
         self.articles = []
-        self.categories = {}
-        self.tags = {}
+        self.categories = Category(name="all", rank=0, sub=[])
+        self.tags = []
         self.pages = []
         self.index = ""
         self.about = ""
 
+        self.reload()
+
+
+    def select(category="all", tag=""):
+        selected = self.articles
+        if category:
+            f = category if callable(category) else (lambda x: category in x.categories)
+            selected = filter(f, selected)
+        if tag:
+            f = tag if callable(tag) else (lambda x: x == tag)
+            selected = filter(f, selected)
+        return selected
+
+
+    def reload(self):
+        tags = {}
+        def load_articles(root, cats):
+            for entry in os.listdir(root):
+                location = os.path.join(root, entry)
+                if os.path.isdir(location):
+                    sub = Category(name=entry, rank=0, sub=[])
+                    cats[-1].sub.append(sub)
+                    load_articles(location, cats + [sub])
+                    cats[-1].rank += sub.rank
+                    continue
+
+                if not entry.endswith(".md"): continue
+
+                a = article(self.config, location)
+
+                if a.header.categories:
+                    for s in cats[-1].sub:
+                        if s.name == a.header.categories[0]:
+                            s.rank += 1; a.header.categories = [s]; break
+                    else:
+                        s = Category(name=a.header.categories[0], rank=1, sub=[])
+                        cats[-1].sub.append(s)
+                        a.header.categories = [s]
+                a.header.categories = cats + a.header.categories
+
+                self.articles.append(a)
+                for t in a.header.tags:
+                    tags.setdefault(t, 0); tags[t] += 1
+
+                cats[-1].rank += 1
+
         articles_dir = os.path.join(self.root, "articles")
         ensure_dir(articles_dir)
-        for entry in os.listdir(articles_dir):
-            if not entry.endswith(".md"): continue
-            a = Article(os.path.join(self.root, "articles", entry))
 
-            self.articles.append(a)
-            self.categories.setdefault(a.header.category, [])
-            self.categories[a.header.category].append(a)
+        load_articles(articles_dir, [self.categories])
 
-            for t in a.header.tags:
-                self.tags.setdefault(t, [])
-                self.tags[t].append(a)
+        tags = [Tag(name=i[0], rank=i[1]) for i in tags.items()]
+        self.tags = sorted(sorted(tags, key=lambda t: t.name), key=lambda t: t.rank, reverse=True)
 
-        sort = lambda v: v.sort(key=lambda a: a.header.date, reverse=True)
-        dsort = lambda d: [sort(v) for v in d.values()]
-        sort(self.articles)
-        dsort(self.categories)
-        dsort(self.tags)
+        self.articles.sort(key=lambda a: a.header.date, reverse=True)
+
+        def csort(cat):
+            cat.sub.sort(key=lambda c: c.rank, reverse=True)
+            for s in cat.sub: csort(s)
+        csort(self.categories)
 
         app = self.config.articles_per_page
         total_pages = len(self.articles) // app
         total_pages += (1 if len(self.articles) % app else 0)
         for p in range(1, total_pages+1):
-            page = Page(p, self.articles[p*app:(p+1)*app])
+            is_first = p == 1
+            page = Page(name=p,
+                        first=1,
+                        last=total_pages,
+                        is_first=is_first,
+                        is_last=False,
+                        articles=self.articles[p*app:(p+1)*app])
             self.pages.append(page)
         if self.pages: self.pages[-1].is_last = True
 

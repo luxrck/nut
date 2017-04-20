@@ -26,6 +26,7 @@ class Config(object):
         self.summary = ""
         self.home = "Homepage"
         self.output = "site"
+        self.datetime_format = "%Y-%m-%d %H:%M %Z%z"
         self.externals = {}
         self.articles_per_page = 10
 
@@ -43,6 +44,7 @@ class Config(object):
             "summary": self.summary,
             "home": self.home,
             "output": self.output,
+            "datetime_format": self.datetime_format,
             "articles_per_page": self.articles_per_page,
             "externals": self.externals,
             }
