@@ -2,7 +2,8 @@ import os
 
 import mistune
 
-from . import config, theme
+from .config import Config
+from .theme import Theme
 from .fs import *
 from .processor import *
 
@@ -11,8 +12,8 @@ class Generator(object):
     def __init__(self, root):
         self.root = os.path.abspath(root)
 
-        self.config = config.Config(self.root)
-        self.theme = theme.Theme(name = self.config.theme, root = self.root)
+        self.config = Config(self.root)
+        self.theme = Theme(name = self.config.theme, root = self.root)
 
         self.articles = []
         self.categories = Category(name="all", rank=0, sub=[])
@@ -49,7 +50,7 @@ class Generator(object):
 
                 if not entry.endswith(".md"): continue
 
-                a = article(self.config, location)
+                a = article(location)
 
                 if a.header.categories:
                     for s in cats[-1].sub:
@@ -59,7 +60,7 @@ class Generator(object):
                         s = Category(name=a.header.categories[0], rank=1, sub=[])
                         cats[-1].sub.append(s)
                         a.header.categories = [s]
-                a.header.categories = cats + a.header.categories
+                a.header.categories = [c.name for c in cats + a.header.categories]
 
                 self.articles.append(a)
                 for t in a.header.tags:
@@ -120,13 +121,14 @@ class Generator(object):
                     "articles": self.articles,
                     "pages": self.pages,
                     "this": self,
+                    "config": self.config,
                     }
                 for v in route[1]:
                     if route[2] == "tag": kw["tag"] = v
                     elif route[2] == "category": kw["category"] = v
                     elif route[2] == "article": kw["article"] = v
                     elif route[2] == "page": kw["page"] = v
-                    output = os.path.join(root, route[0].format(str(v)).strip())
+                    output = os.path.join(root, route[0].format(getattr(v, "name") if hasattr(v, "name") else "").strip())
                     output = output + ("index.html" if output[-1] == "/" else "")
                     saveto(output, r(kw, tmpl))
 

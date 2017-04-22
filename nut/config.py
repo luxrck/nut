@@ -14,6 +14,13 @@ def external_link(website, username):
 
 
 class Config(object):
+    __instance__ = None
+    def __new__(cls, *args, **kw):
+        if not Config.__instance__:
+            self = Config.__instance__ = object.__new__(cls)
+            Config.__init__(self, *args, **kw)
+        return Config.__instance__
+
     def __init__(self, root):
         self.root = os.path.abspath(root)
         self.file = os.path.join(self.root, "config.yml")
@@ -50,3 +57,7 @@ class Config(object):
             }
         with open(self.file, "w") as stream:
             yaml.dump(data, stream, default_flow_style=False)
+
+
+def config():
+    return Config.__instance__

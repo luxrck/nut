@@ -26,12 +26,13 @@ def build(root="."):
 
 
 def new_article(name, root="."):
-    c = Config(root)
-    h = ArticleHeader()
+    Config(root)
+    h = header()
     h.title = name
-    filename = name.lower().replace(" ", "-")
-    filename = "{}-{}.md".format(h.date.strftime(config.datetime_format), filename)
-    open(os.path.join(root, "articles", filename), "w").write(h.serialize())
+    filename = re.sub("[^\w\s]", "", name.lower()).strip()
+    filename = filename.replace(" ", "-")
+    filename = "{}-{}.md".format(h.date.strftime("%Y-%m-%d"), filename)
+    open(os.path.join(root, "articles", filename), "w").write(serialize(h))
 
 
 def serve(root="."):
