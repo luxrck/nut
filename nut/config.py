@@ -35,6 +35,7 @@ class Config(object):
         self.output = "site"
         self.datetime_format = "%Y-%m-%d %H:%M %Z%z"
         self.externals = {}
+        self.external_links = {}
         self.articles_per_page = 10
 
     def reload(self):
@@ -43,7 +44,7 @@ class Config(object):
         for k, v in data.items():
             if hasattr(self, k): setattr(self, k, v)
         for k, v in self.externals.items():
-            self.externals[k] = external_link(k, v)
+            self.external_links[k] = external_link(k, v)
 
     def save(self):
         data = {
