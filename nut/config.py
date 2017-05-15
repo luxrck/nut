@@ -37,6 +37,7 @@ class Config(object):
         self.externals = {}
         self.external_links = {}
         self.articles_per_page = 10
+        self.ga = {}
 
     def reload(self):
         data = yaml.load(open(self.file).read())
@@ -55,6 +56,7 @@ class Config(object):
             "datetime_format": self.datetime_format,
             "articles_per_page": self.articles_per_page,
             "externals": self.externals,
+            "ga": self.ga,
             }
         with open(self.file, "w") as stream:
             yaml.dump(data, stream, default_flow_style=False)
